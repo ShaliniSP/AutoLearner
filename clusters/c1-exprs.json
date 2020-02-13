@@ -1,0 +1,293 @@
+[
+  {
+    "var": "iter#0", 
+    "loc": 1, 
+    "src": null, 
+    "fnc": "computeDeriv", 
+    "expr": {
+      "args": [
+        {
+          "type": "Const", 
+          "original": null, 
+          "value": "1"
+        }, 
+        {
+          "args": [
+            {
+              "original": null, 
+              "type": "Var", 
+              "name": "poly", 
+              "primed": false
+            }
+          ], 
+          "type": "Op", 
+          "name": "len", 
+          "original": null
+        }
+      ], 
+      "type": "Op", 
+      "name": "range", 
+      "original": null
+    }
+  }, 
+  {
+    "var": "iter#0", 
+    "loc": 1, 
+    "src": "examples/c2.py", 
+    "fnc": "computeDeriv", 
+    "expr": {
+      "args": [
+        {
+          "type": "Const", 
+          "original": null, 
+          "value": "1"
+        }, 
+        {
+          "args": [
+            {
+              "original": null, 
+              "type": "Var", 
+              "name": "poly", 
+              "primed": false
+            }
+          ], 
+          "type": "Op", 
+          "name": "len", 
+          "original": null
+        }
+      ], 
+      "type": "Op", 
+      "name": "xrange", 
+      "original": null
+    }
+  }, 
+  {
+    "var": "$ret", 
+    "loc": 3, 
+    "src": null, 
+    "fnc": "computeDeriv", 
+    "expr": {
+      "args": [
+        {
+          "args": [
+            {
+              "original": null, 
+              "type": "Var", 
+              "name": "result", 
+              "primed": false
+            }, 
+            {
+              "args": [], 
+              "type": "Op", 
+              "name": "ListInit", 
+              "original": null
+            }
+          ], 
+          "type": "Op", 
+          "name": "Eq", 
+          "original": null
+        }, 
+        {
+          "args": [
+            {
+              "type": "Const", 
+              "original": null, 
+              "value": "0.0"
+            }
+          ], 
+          "type": "Op", 
+          "name": "ListInit", 
+          "original": null
+        }, 
+        {
+          "original": null, 
+          "type": "Var", 
+          "name": "result", 
+          "primed": false
+        }
+      ], 
+      "type": "Op", 
+      "name": "ite", 
+      "original": null
+    }
+  }, 
+  {
+    "var": "$ret", 
+    "loc": 3, 
+    "src": "examples/c2.py", 
+    "fnc": "computeDeriv", 
+    "expr": {
+      "args": [
+        {
+          "args": [
+            {
+              "args": [
+                {
+                  "original": null, 
+                  "type": "Var", 
+                  "name": "result", 
+                  "primed": false
+                }
+              ], 
+              "type": "Op", 
+              "name": "len", 
+              "original": null
+            }, 
+            {
+              "type": "Const", 
+              "original": null, 
+              "value": "0"
+            }
+          ], 
+          "type": "Op", 
+          "name": "Eq", 
+          "original": null
+        }, 
+        {
+          "args": [
+            {
+              "type": "Const", 
+              "original": null, 
+              "value": "0.0"
+            }
+          ], 
+          "type": "Op", 
+          "name": "ListInit", 
+          "original": null
+        }, 
+        {
+          "original": null, 
+          "type": "Var", 
+          "name": "result", 
+          "primed": false
+        }
+      ], 
+      "type": "Op", 
+      "name": "ite", 
+      "original": null
+    }
+  }, 
+  {
+    "var": "result", 
+    "loc": 4, 
+    "src": null, 
+    "fnc": "computeDeriv", 
+    "expr": {
+      "args": [
+        {
+          "original": null, 
+          "type": "Var", 
+          "name": "result", 
+          "primed": false
+        }, 
+        {
+          "args": [
+            {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "original": null, 
+                      "type": "Var", 
+                      "name": "poly", 
+                      "primed": false
+                    }, 
+                    {
+                      "original": null, 
+                      "type": "Var", 
+                      "name": "e", 
+                      "primed": true
+                    }
+                  ], 
+                  "type": "Op", 
+                  "name": "GetElement", 
+                  "original": null
+                }, 
+                {
+                  "original": null, 
+                  "type": "Var", 
+                  "name": "e", 
+                  "primed": true
+                }
+              ], 
+              "type": "Op", 
+              "name": "Mult", 
+              "original": null
+            }
+          ], 
+          "type": "Op", 
+          "name": "float", 
+          "original": null
+        }
+      ], 
+      "type": "Op", 
+      "name": "append", 
+      "original": null
+    }
+  }, 
+  {
+    "var": "result", 
+    "loc": 4, 
+    "src": "examples/c2.py", 
+    "fnc": "computeDeriv", 
+    "expr": {
+      "args": [
+        {
+          "original": null, 
+          "type": "Var", 
+          "name": "result", 
+          "primed": false
+        }, 
+        {
+          "args": [
+            {
+              "args": [
+                {
+                  "args": [
+                    {
+                      "original": null, 
+                      "type": "Var", 
+                      "name": "e", 
+                      "primed": true
+                    }
+                  ], 
+                  "type": "Op", 
+                  "name": "float", 
+                  "original": null
+                }, 
+                {
+                  "args": [
+                    {
+                      "original": null, 
+                      "type": "Var", 
+                      "name": "poly", 
+                      "primed": false
+                    }, 
+                    {
+                      "original": null, 
+                      "type": "Var", 
+                      "name": "e", 
+                      "primed": true
+                    }
+                  ], 
+                  "type": "Op", 
+                  "name": "GetElement", 
+                  "original": null
+                }
+              ], 
+              "type": "Op", 
+              "name": "Mult", 
+              "original": null
+            }
+          ], 
+          "type": "Op", 
+          "name": "ListInit", 
+          "original": null
+        }
+      ], 
+      "type": "Op", 
+      "name": "AssAdd", 
+      "original": null
+    }
+  }
+]
