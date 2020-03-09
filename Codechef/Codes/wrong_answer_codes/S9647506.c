@@ -1,0 +1,35 @@
+
+    #include<stdio.h>
+    #include<stdlib.h>
+    int main(void)
+    {
+    int n,*a,i,even=0,odd=0;
+    scanf("%d",&n);
+    a=(int*)malloc(sizeof(int)*n);
+    if((n>=1)&&(n<=100))
+    {
+    	for(i=0;i<n;i++)
+    	scanf("%d",&a[i]);
+    	while((a[i]>=1)&&(a[i]<=100))
+    	{
+    		if(a[i]%2==0)
+    		{
+    			even+=1;
+    		}
+    		else
+    		{
+    			odd-=1;
+    		}
+    	}
+    	if(even>odd)
+    	{
+    		printf("READY FOR BATTLE");
+    	}
+    	else
+    	{
+    		printf("NOT READY");
+    	}
+    }
+    return 0;
+    }
+

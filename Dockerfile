@@ -6,11 +6,17 @@ MAINTAINER Ivan Radiček <radicek@forsyte.at>
 
 # Update and install required software
 RUN apt-get -y update
-RUN apt-get -y install python-pip gcc make cython lp-solve liblpsolve55-dev git vim
+RUN apt-get -y install python-pip gcc make cython lp-solve liblpsolve55-dev git
+RUN apt-get -y install nano
+
+RUN apt-get -y install python3
+RUN apt-get -y install python3-pip 
 
 # Install clara
 WORKDIR /root/
-RUN git clone "https://github.com/iradicek/clara"
+# RUN git clone "https://github.com/iradicek/clara"
+RUN mkdir clara
+Add clara_code/ clara/
 WORKDIR /root/clara
 RUN make install
 
@@ -22,12 +28,16 @@ RUN mkdir /home/clara
 RUN mkdir /home/clara/examples
 ADD examples/* /home/clara/examples/
 
+RUN mkdir /home/clara/Codechef
+ADD Codechef/ /home/clara/Codechef/
+
+
 # RUN mkdir /home/clara/TestSuite
 # ADD TestSuite1.0/* /home/clara/TestSuite/
 
 RUN chown -R clara:clara /home/clara
 
-ARG buildtime_variable=default_value 
+ARG buildtime_variable=/usr/lib/lp_solve
 ENV LD_LIBRARY_PATH=$buildtime_variable 
 
 # RUN mkdir ~/examples

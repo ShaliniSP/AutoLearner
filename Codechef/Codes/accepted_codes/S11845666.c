@@ -1,0 +1,32 @@
+
+    #include <stdio.h>
+    
+    int main(void) {
+        int n,a[100],i,c1=0,c2=0;
+        scanf("%d",&n);
+        if(n>=1 && n<=100)
+        {
+            for(i=1;i<=n;i++)
+            {
+                scanf("%d",&a[i]);
+            }
+            for(i=1;i<=n;i++)
+            {
+                if(a[i]>=1 && a[i]<=100)
+                {
+                    if(a[i]%2==0)
+                    c1++;
+                    else
+                    c2++;
+                }
+            }
+            if(c1>c2)
+            printf("READY FOR BATTLE");
+            else
+            printf("NOT READY");
+        }
+    	return 0;
+    }
+    
+    
+

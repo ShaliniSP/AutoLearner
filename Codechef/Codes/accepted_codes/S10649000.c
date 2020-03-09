@@ -1,0 +1,29 @@
+
+    #include <stdio.h>
+     
+    int main(void) {
+    	
+    	int t, i, o = 0, e;
+    	
+    	scanf ("%d", &t);
+    	
+    	i = t;
+    	
+    	while (t--) {
+    	    scanf ("%d", &e);
+    	    if (e%2!=0) {
+    	        ++o;
+    	    }
+    	}
+    	
+    	e = i - o;
+    	
+    	if (e > o) {
+    	    printf ("READY FOR BATTLE");
+    	} else {
+    	    printf ("NOT READY");
+    	}
+    	return 0;
+    }
+     
+
