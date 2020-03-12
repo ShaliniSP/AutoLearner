@@ -27,7 +27,7 @@ from clara.clustering import Clustering
 from clara.model import expr_to_dict, dict_to_expr
 from clara.parser import getlangparser
 from clara.repair import Repair
-
+from clara.ipgen import permute_ip
 VERBOSE=0
 
 class Clara(object):
@@ -71,6 +71,10 @@ Options are:
                      than N, an error occurs
                      (default is 0, which means that there is no limit)
   --clusterdir DIR   directory to write/read clustering results
+----------------------------------------------------------------------------------
+Added options:
+  --dce [0|1]        whether to remove dead code from files before processing (default is 0)
+  --ipgen [0|1]      whether to generate all permutations of the input provided (default is 0)
 '''
 
     def __init__(self):
@@ -131,6 +135,8 @@ Options are:
         self.suboptimal = int(self.opts.pop('suboptimal', 1))
         self.maxfeedcost = int(self.opts.pop('maxfeedcost', 0))
         self.clusterdir = self.opts.pop('clusterdir', 'clusters')
+        self.dce = int(self.opts.pop('dce', 0))
+        self.ipgen = int(self.opts.pop('ipgen', 0))
 
         self.poolsize = self.opts.pop('poolsize', None)
         if self.poolsize is not None:
@@ -166,6 +172,15 @@ Options are:
         if self.argsfile is not None:
             with open(self.argsfile, 'r') as f:
                 self.args = literal_eval(f.read())
+
+        if self.ipgen:
+        	if self.ins is not None:
+        		self.ins = permute_ip(self.ins)
+        	if self.args is not None:
+        		self.args = permute_ip(self.args)
+
+        print self.ins
+        print self.args
 
         if self.lang is None:
             self.guess_lang()
@@ -420,13 +435,11 @@ Options are:
         '''
         Reads and parses a single source file `src` and stets model fields.
         '''
-
         self.debug("Reading and parsing source file '%s'", src)
             
         with open(src, 'r') as f:
             code = f.read().decode('utf-8')
-            
-        model = self.parser.parse_code(code)
+        model = self.parser.parse_code(code, self.dce)
         model.name = src
         self.extract_exprs(model)
 
@@ -436,6 +449,8 @@ Options are:
         '''
         Reads and parses source files (sets models field).
         '''
+        print self
+        print self.parser
 
         self.models = []
 

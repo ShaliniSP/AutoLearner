@@ -27,7 +27,7 @@ ADD examples/* /home/clara/examples/
 
 RUN chown -R clara:clara /home/clara
 
-ARG buildtime_variable=default_value 
+ARG buildtime_variable=/usr/lib/lp_solve/ 
 ENV LD_LIBRARY_PATH=$buildtime_variable 
 
 # RUN mkdir ~/examples
