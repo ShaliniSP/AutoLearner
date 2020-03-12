@@ -35,7 +35,7 @@ class Parser(object):
     '''
 
     def __init__(self, optifs=True, postprocess=True, nobcs=False,
-                 slice=False):
+                 slice=True):
         
         self.prog = Program()
 
@@ -520,8 +520,8 @@ class Parser(object):
         return name in self.fncs
 
     @classmethod
-    def parse_code(cls, code, *args, **kwargs):
-        parser = cls(*args, **kwargs)
+    def parse_code(cls, code, dce_flag, *args, **kwargs):
+        parser = cls(slice = bool(dce_flag), *args, **kwargs)
         parser.parse(code)
         parser.postprocess()
         if parser.slice:
