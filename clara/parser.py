@@ -35,7 +35,7 @@ class Parser(object):
     '''
 
     def __init__(self, optifs=True, postprocess=True, nobcs=False,
-                 slice=True):
+                 slice=False):
         
         self.prog = Program()
 

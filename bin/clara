@@ -179,9 +179,6 @@ Added options:
         	if self.args is not None:
         		self.args = permute_ip(self.args)
 
-        print self.ins
-        print self.args
-
         if self.lang is None:
             self.guess_lang()
 
@@ -449,9 +446,6 @@ Added options:
         '''
         Reads and parses source files (sets models field).
         '''
-        print self
-        print self.parser
-
         self.models = []
 
         for src in self.sources:

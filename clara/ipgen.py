@@ -12,6 +12,7 @@ def get_inner(nested, count = 0):
     return nested
 
 def add_paren(ip, depth):
+
 	for i in range(depth):
 		ip = [ip]
 	return ip
@@ -24,4 +25,5 @@ def permute_ip(ip):
 		i = get_inner(i)
 		if type(i) == list:
 			new_ip+=list(permutations(i))
-	return [add_paren(i, d-1) for i in new_ip]
+			print new_ip
+	return [add_paren(list(i), d-2) for i in new_ip]

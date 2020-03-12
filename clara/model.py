@@ -680,35 +680,42 @@ class Function(object):
         Slices (removes and (in more aggresive mode) merges) expressions
         Note: Merge is unsound!
         '''
+        dead_code = True
 
-        used = self.used()
-        livein, liveout = self.live(used=used)
-        usedpre, usedpost = used
+        while dead_code:
 
-        for loc in self.locs():
+            dead_code = False
 
-            exprs = []
-            m = {}
+            used = self.used()
+            livein, liveout = self.live(used=used)
+            usedpre, usedpost = used
 
-            for (var, expr) in self.exprs(loc):
+            for loc in self.locs():
 
-                for v, e in m.items():
-                    expr = expr.replace(v, e.copy(), primedonly=True)
-                
-                # Definitively unsed var!
-                if var not in SPECIAL_VARS and var not in usedpost[loc] \
-                   and var not in liveout[loc]:
-                    continue
+                exprs = []
+                m = {}
 
-                # This variable can be merged
-                if var not in SPECIAL_VARS and var not in liveout[loc] \
-                   and merge:
-                    m[var] = expr
-                    continue
+                for (var, expr) in self.exprs(loc):
 
-                exprs.append((var, expr))
+                    for v, e in m.items():
+                        expr = expr.replace(v, e.copy(), primedonly=True)
+                    
+                    # Definitively unsed var!
+                    if var not in SPECIAL_VARS and var not in usedpost[loc] \
+                       and var not in liveout[loc]:
+                        dead_code = True
+                        continue
 
-            self.replaceexprs(loc, exprs)
+                    # This variable can be merged
+                    if var not in SPECIAL_VARS and var not in liveout[loc] \
+                       and merge:
+                        m[var] = expr
+                        dead_code = True
+                        continue
+
+
+                    exprs.append((var, expr))
+                self.replaceexprs(loc, exprs)
 
         # Remove unused variables
         usedpre, usedpost = self.used()
