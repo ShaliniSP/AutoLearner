@@ -31,7 +31,7 @@ class Fn_Matching(Matching):
 
     def __init__(self, ignoreio=False, ignoreret=False, verbose=False,
                  debugvar=None, bijective=True, fnmapping = False):
-        super(Fn_Matching, self).__init__(self, ignoreio=False, ignoreret=False, verbose=False, debugvar=None, bijective=True)
+        super(Fn_Matching, self).__init__(ignoreio, ignoreret, verbose, debugvar, bijective)
         
         self.fnmapping = fnmapping
 

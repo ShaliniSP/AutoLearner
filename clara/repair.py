@@ -16,6 +16,8 @@ from model import isprimed, unprime, prime
 from model import SPECIAL_VARS, VAR_IN, VAR_OUT, VAR_RET
 from model import Var, Const, Op
 from matching import Matching
+from fn_matching import Fn_Matching
+
 
 
 class StructMismatch(Exception):
@@ -72,11 +74,12 @@ class RepairResult(object):
 class Repair(object):
 
     def __init__(self, timeout=60, verbose=False, solver=None,
-                 allowsuboptimal=True, cleanstrings=False):
+                 allowsuboptimal=True, cleanstrings=False, fnmapping = False):
         self.starttime = None
         self.timeout = timeout
         self.verbose = verbose
         self.cleanstrings = cleanstrings
+        self.fnmapping = fnmapping
 
         if solver is None:
             from ilp import Solver
@@ -138,6 +141,8 @@ class Repair(object):
 
         # (1) Check struct match
         M = Matching(verbose=self.verbose)
+        if self.fnmapping:
+            M = Fn_Matching(verbose=self.verbose, fnmapping = self.fnmapping)
         self.sm = M.match_struct(P, Q)
         if self.sm is None:
             raise StructMismatch('')

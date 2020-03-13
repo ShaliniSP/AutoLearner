@@ -23,6 +23,7 @@ from clara.feedback_simple import SimpleFeedback
 from clara.feedback_python import PythonFeedback
 from clara.interpreter import getlanginter
 from clara.matching import Matching
+from clara.fn_matching import Fn_Matching
 from clara.clustering import Clustering
 from clara.model import expr_to_dict, dict_to_expr
 from clara.parser import getlangparser
@@ -241,9 +242,14 @@ New options:
 
         elif len(self.models) > 2:
             self.debug('Match requires two programs, ignoring the rest!')
-
+        
         M = Matching(ignoreio=self.ignoreio, ignoreret=self.ignoreret,
                      verbose=self.verbose, bijective=self.bijective, fnmapping = self.fnmapping)
+
+        if self.fnmapping:
+            M = Fn_Matching(ignoreio=self.ignoreio, ignoreret=self.ignoreret,
+                     verbose=self.verbose, bijective=self.bijective, fnmapping = self.fnmapping)
+
 
         m = M.match_programs(self.models[0], self.models[1], self.inter,
                              ins=self.ins, args=self.args,
@@ -262,6 +268,9 @@ New options:
             self.error("Clustering directory '%s' does not exist!", self.clusterdir)
 
         M = Matching(ignoreio=self.ignoreio, ignoreret=self.ignoreret,
+                     verbose=self.verbose, bijective=self.bijective)
+        if self.fnmapping:
+            M = Fn_Matching(ignoreio=self.ignoreio, ignoreret=self.ignoreret,
                      verbose=self.verbose, bijective=self.bijective, fnmapping = self.fnmapping)
         C = Clustering(M)
 
