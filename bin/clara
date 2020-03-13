@@ -83,6 +83,8 @@ New options:
   --ipgen [0|1]      whether to generate all permutations of the input provided (default is 0)
   --numc             number of correct specifications
   --numi             number of incorrect specifications 
+  --fnmapping [0|1]  whether to map functions with different names to one 
+                     another or not. (default is 0)
 '''
 
     def __init__(self):
@@ -148,6 +150,8 @@ New options:
         self.ipgen = int(self.opts.pop('ipgen', 0))
         self.numc =  int(self.opts.pop('numc', -1))
         self.numi =  int(self.opts.pop('numi', -1))
+        self.fnmapping = int(self.opts.pop('fnmapping', 0))
+
 
         self.poolsize = self.opts.pop('poolsize', None)
         if self.poolsize is not None:
@@ -239,7 +243,7 @@ New options:
             self.debug('Match requires two programs, ignoring the rest!')
 
         M = Matching(ignoreio=self.ignoreio, ignoreret=self.ignoreret,
-                     verbose=self.verbose, bijective=self.bijective)
+                     verbose=self.verbose, bijective=self.bijective, fnmapping = self.fnmapping)
 
         m = M.match_programs(self.models[0], self.models[1], self.inter,
                              ins=self.ins, args=self.args,
@@ -258,7 +262,7 @@ New options:
             self.error("Clustering directory '%s' does not exist!", self.clusterdir)
 
         M = Matching(ignoreio=self.ignoreio, ignoreret=self.ignoreret,
-                     verbose=self.verbose, bijective=self.bijective)
+                     verbose=self.verbose, bijective=self.bijective, fnmapping = self.fnmapping)
         C = Clustering(M)
 
         existing = []
@@ -315,7 +319,7 @@ New options:
 
         R = Repair(timeout=self.timeout, verbose=self.verbose,
                    allowsuboptimal=self.suboptimal,
-                   cleanstrings=self.cleanstrings)
+                   cleanstrings=self.cleanstrings, fnmapping = self.fnmapping)
 
         r = R.repair(self.models[0], self.models[1], self.inter,
                      ins=self.ins, args=self.args, ignoreio=self.ignoreio,
