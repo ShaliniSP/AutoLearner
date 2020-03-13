@@ -28,6 +28,8 @@ from clara.model import expr_to_dict, dict_to_expr
 from clara.parser import getlangparser
 from clara.repair import Repair
 from clara.ipgen import permute_ip
+from clara.grader import Grader
+
 VERBOSE=0
 
 class Clara(object):
@@ -35,15 +37,19 @@ class Clara(object):
     USAGE = '''
 %s COMMAND [OPTIONS*] SOURCE_FILE_1 SOURCE_FILE_2 ...
 
-Commands are:
+Original Commands are:
   help       print this usage message
   model      prints a model of a program
   match      run the matching procedure on two source files
   cluster    run the clustering on a set of files
   repair     run the repair algorithm on two source files
   feedback   generates feedback on multiple specifications
+----------------------------------------------------------------------------------
+New commands are:
+  grade      generates feedback given multiple correct and incorrect files
+----------------------------------------------------------------------------------
 
-Options are:
+Original Options are:
   --verbose [0|1]    controls the amount of output information printed
                      (default is 0)
   --lang LANG        language of the source files
@@ -72,9 +78,11 @@ Options are:
                      (default is 0, which means that there is no limit)
   --clusterdir DIR   directory to write/read clustering results
 ----------------------------------------------------------------------------------
-Added options:
+New options:
   --dce [0|1]        whether to remove dead code from files before processing (default is 0)
   --ipgen [0|1]      whether to generate all permutations of the input provided (default is 0)
+  --numc             number of correct specifications
+  --numi             number of incorrect specifications 
 '''
 
     def __init__(self):
@@ -118,6 +126,7 @@ Added options:
         self.cmd = self.args[0]
         self.sources = self.args[1:]
 
+        print self.sources
         if self.cmd == 'help':
             self.usage()
             return
@@ -137,6 +146,8 @@ Added options:
         self.clusterdir = self.opts.pop('clusterdir', 'clusters')
         self.dce = int(self.opts.pop('dce', 0))
         self.ipgen = int(self.opts.pop('ipgen', 0))
+        self.numc =  int(self.opts.pop('numc', -1))
+        self.numi =  int(self.opts.pop('numi', -1))
 
         self.poolsize = self.opts.pop('poolsize', None)
         if self.poolsize is not None:
@@ -204,6 +215,9 @@ Added options:
 
         elif self.cmd == 'eval':
             self.eval()
+
+        elif self.cmd == 'grade':
+            self.grade()
 
         else:
             self.usage()
@@ -451,7 +465,9 @@ Added options:
         for src in self.sources:
             model = self.process_source(src)
             self.models.append(model)
-                
+    
+    def grade(self):
+        Grader(self.models, self.numc, self.numi, self).grade()
 
 if __name__ == '__main__':
     try:
