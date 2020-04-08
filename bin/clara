@@ -12,6 +12,7 @@ import pprint
 import shutil
 import sys
 import traceback
+import pdb
 
 from ast import literal_eval
 
@@ -23,10 +24,13 @@ from clara.feedback_simple import SimpleFeedback
 from clara.feedback_python import PythonFeedback
 from clara.interpreter import getlanginter
 from clara.matching import Matching
+from clara.fn_matching import Fn_Matching
 from clara.clustering import Clustering
 from clara.model import expr_to_dict, dict_to_expr
 from clara.parser import getlangparser
 from clara.repair import Repair
+from clara.ipgen import permute_ip
+from clara.grader import Grader
 
 VERBOSE=0
 
@@ -35,15 +39,19 @@ class Clara(object):
     USAGE = '''
 %s COMMAND [OPTIONS*] SOURCE_FILE_1 SOURCE_FILE_2 ...
 
-Commands are:
+Original Commands are:
   help       print this usage message
   model      prints a model of a program
   match      run the matching procedure on two source files
   cluster    run the clustering on a set of files
   repair     run the repair algorithm on two source files
   feedback   generates feedback on multiple specifications
+----------------------------------------------------------------------------------
+New commands are:
+  grade      generates feedback given multiple correct and incorrect files
+----------------------------------------------------------------------------------
 
-Options are:
+Original Options are:
   --verbose [0|1]    controls the amount of output information printed
                      (default is 0)
   --lang LANG        language of the source files
@@ -71,6 +79,16 @@ Options are:
                      than N, an error occurs
                      (default is 0, which means that there is no limit)
   --clusterdir DIR   directory to write/read clustering results
+----------------------------------------------------------------------------------
+New options:
+  --dce [0|1]        whether to remove dead code from files before processing (default is 0)
+  --ipgen [0|1]      whether to generate all permutations of the input provided (default is 0)
+  --numc             number of correct specifications
+  --numi             number of incorrect specifications 
+  --fnmapping [0|1]  whether to map functions with different names to one 
+                     another or not. (default is 0)
+  --structrepair    [0|1] whether to add structural repairs to incorrect program (default is 0)
+
 '''
 
     def __init__(self):
@@ -114,6 +132,7 @@ Options are:
         self.cmd = self.args[0]
         self.sources = self.args[1:]
 
+        print self.sources
         if self.cmd == 'help':
             self.usage()
             return
@@ -131,6 +150,13 @@ Options are:
         self.suboptimal = int(self.opts.pop('suboptimal', 1))
         self.maxfeedcost = int(self.opts.pop('maxfeedcost', 0))
         self.clusterdir = self.opts.pop('clusterdir', 'clusters')
+        self.dce = int(self.opts.pop('dce', 0))
+        self.ipgen = int(self.opts.pop('ipgen', 0))
+        self.numc =  int(self.opts.pop('numc', -1))
+        self.numi =  int(self.opts.pop('numi', -1))
+        self.fnmapping = int(self.opts.pop('fnmapping', 0))
+        self.structrepair = int(self.opts.pop('structrepair', 0))
+
 
         self.poolsize = self.opts.pop('poolsize', None)
         if self.poolsize is not None:
@@ -141,7 +167,7 @@ Options are:
             self.feedtype = RepairFeedback
         elif self.feedtype == 'simple':
             self.feedtype = SimpleFeedback
-        elif self.feedtype == 'python':
+        elif self.feedtype == 'normal':
             self.feedtype = PythonFeedback
         else:
             self.error("Unknown feedback type: '%s'", self.feedtype)
@@ -166,6 +192,12 @@ Options are:
         if self.argsfile is not None:
             with open(self.argsfile, 'r') as f:
                 self.args = literal_eval(f.read())
+
+        if self.ipgen:
+        	if self.ins is not None:
+        		self.ins = permute_ip(self.ins)
+        	if self.args is not None:
+        		self.args = permute_ip(self.args)
 
         if self.lang is None:
             self.guess_lang()
@@ -193,6 +225,9 @@ Options are:
         elif self.cmd == 'eval':
             self.eval()
 
+        elif self.cmd == 'grade':
+            self.grade()
+
         else:
             self.usage()
             self.error("Unknown command: '%s'", self.cmd)
@@ -211,9 +246,14 @@ Options are:
 
         elif len(self.models) > 2:
             self.debug('Match requires two programs, ignoring the rest!')
-
+        
         M = Matching(ignoreio=self.ignoreio, ignoreret=self.ignoreret,
                      verbose=self.verbose, bijective=self.bijective)
+
+        if self.fnmapping or self.structrepair:
+            M = Fn_Matching(ignoreio=self.ignoreio, ignoreret=self.ignoreret,
+                     verbose=self.verbose, bijective=self.bijective, fnmapping = self.fnmapping, structrepair = self.structrepair)
+
 
         m = M.match_programs(self.models[0], self.models[1], self.inter,
                              ins=self.ins, args=self.args,
@@ -233,14 +273,17 @@ Options are:
 
         M = Matching(ignoreio=self.ignoreio, ignoreret=self.ignoreret,
                      verbose=self.verbose, bijective=self.bijective)
+        if self.fnmapping or self.structrepair:
+            print "something"
+            M = Fn_Matching(ignoreio=self.ignoreio, ignoreret=self.ignoreret,
+                     verbose=self.verbose, bijective=self.bijective, fnmapping = self.fnmapping, structrepair = self.structrepair)
         C = Clustering(M)
 
         existing = []
         for f in glob.glob(os.path.join(self.clusterdir, "*." + self.lang)):
-            model = self.process_source(f)
+            model, ast = self.process_source(f)
             existing.append(model)
         print "Found %d existing clusters" % (len(existing))
-                    
         new, mod = C.cluster(self.models, self.inter,
                              ins=self.ins, args=self.args,
                              entryfnc=self.entryfnc, existing=existing)
@@ -289,13 +332,14 @@ Options are:
 
         R = Repair(timeout=self.timeout, verbose=self.verbose,
                    allowsuboptimal=self.suboptimal,
-                   cleanstrings=self.cleanstrings)
+                   cleanstrings=self.cleanstrings, fnmapping = self.fnmapping, structrepair = self.structrepair)
 
         r = R.repair(self.models[0], self.models[1], self.inter,
                      ins=self.ins, args=self.args, ignoreio=self.ignoreio,
-                     ignoreret=self.ignoreret, entryfnc=self.entryfnc)
+                     ignoreret=self.ignoreret, entryfnc=self.entryfnc, astP = self.asts[0], astQ = self.asts[1])
         if r:
-            txt = RepairFeedback(self.models[1], self.models[0], r)
+            # txt = RepairFeedback(self.models[1], self.models[0], r)
+            txt = PythonFeedback(self.models[1], self.models[0], r)
             txt.genfeedback()
             print 'Repairs:'
             print '\n'.join(map(lambda x: '  * %s' % (x,), txt.feedback))
@@ -325,7 +369,11 @@ Options are:
                 self.error('max cost exceeded (%d > %d)',
                            feed.cost, self.maxfeedcost)
             for f in feed.feedback:
-                print '*', f
+                if(self.cmd == "grade"):
+                    yield f
+                else:
+                    print '*', f
+
                 
         elif feed.status == Feedback.STATUS_ERROR:
             self.error(feed.error)
@@ -420,29 +468,30 @@ Options are:
         '''
         Reads and parses a single source file `src` and stets model fields.
         '''
-
         self.debug("Reading and parsing source file '%s'", src)
             
         with open(src, 'r') as f:
             code = f.read().decode('utf-8')
-            
-        model = self.parser.parse_code(code)
+        model, ast = self.parser.parse_code(code, self.dce)
         model.name = src
         self.extract_exprs(model)
 
-        return model
+        return model, ast
             
     def process_sources(self):
         '''
         Reads and parses source files (sets models field).
         '''
-
         self.models = []
+        self.asts = []
 
         for src in self.sources:
-            model = self.process_source(src)
+            model, ast = self.process_source(src)
             self.models.append(model)
-                
+            self.asts.append(ast)
+    
+    def grade(self):
+        Grader(self.models, self.numc, self.numi, self).grade()
 
 if __name__ == '__main__':
     try:

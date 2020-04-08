@@ -433,7 +433,10 @@ class Parser(object):
             ))
             self.visit(next)
         else:
-            nextloc = None
+            # nextloc = None
+            nextloc = self.addloc("update of the '%s' loop at line %d" % (
+                name, self.getline(next)
+            ))
 
         # Add body with (new location)
         bodyloc = self.addloc("inside the body of the '%s' loop beginning at line %d" % (
@@ -520,13 +523,13 @@ class Parser(object):
         return name in self.fncs
 
     @classmethod
-    def parse_code(cls, code, *args, **kwargs):
-        parser = cls(*args, **kwargs)
+    def parse_code(cls, code, dce_flag, *args, **kwargs):
+        parser = cls(slice = bool(dce_flag), *args, **kwargs)
         parser.parse(code)
         parser.postprocess()
         if parser.slice:
             parser.prog.slice()
-        return parser.prog
+        return parser.prog, parser.ast
 
     
 PARSERS = {}

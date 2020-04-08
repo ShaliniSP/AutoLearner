@@ -48,7 +48,7 @@ class PyParser(Parser):
             pyast = ast.parse(code, mode='exec')
         except (SyntaxError, IndentationError), e:
             raise ParseError(str(e))
-        
+        self.ast = pyast
         self.visit(pyast)
 
     def visit_Module(self, node):
@@ -524,6 +524,7 @@ class PyParser(Parser):
         # Add assignments to iterators
         self.addexpr(it_var.name, it)
         self.addexpr(ind_var.name, Const(str(0), line=node.lineno))
+
 
         # Condition is ind_var < len(iter_var)
         cond = Op('Lt', ind_var.copy(), Op('len', it_var.copy()),

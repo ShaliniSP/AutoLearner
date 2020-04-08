@@ -680,35 +680,42 @@ class Function(object):
         Slices (removes and (in more aggresive mode) merges) expressions
         Note: Merge is unsound!
         '''
+        dead_code = True
 
-        used = self.used()
-        livein, liveout = self.live(used=used)
-        usedpre, usedpost = used
+        while dead_code:
 
-        for loc in self.locs():
+            dead_code = False
 
-            exprs = []
-            m = {}
+            used = self.used()
+            livein, liveout = self.live(used=used)
+            usedpre, usedpost = used
 
-            for (var, expr) in self.exprs(loc):
+            for loc in self.locs():
 
-                for v, e in m.items():
-                    expr = expr.replace(v, e.copy(), primedonly=True)
-                
-                # Definitively unsed var!
-                if var not in SPECIAL_VARS and var not in usedpost[loc] \
-                   and var not in liveout[loc]:
-                    continue
+                exprs = []
+                m = {}
 
-                # This variable can be merged
-                if var not in SPECIAL_VARS and var not in liveout[loc] \
-                   and merge:
-                    m[var] = expr
-                    continue
+                for (var, expr) in self.exprs(loc):
 
-                exprs.append((var, expr))
+                    for v, e in m.items():
+                        expr = expr.replace(v, e.copy(), primedonly=True)
+                    
+                    # Definitively unsed var!
+                    if var not in SPECIAL_VARS and var not in usedpost[loc] \
+                       and var not in liveout[loc]:
+                        dead_code = True
+                        continue
 
-            self.replaceexprs(loc, exprs)
+                    # This variable can be merged
+                    if var not in SPECIAL_VARS and var not in liveout[loc] \
+                       and merge:
+                        m[var] = expr
+                        dead_code = True
+                        continue
+
+
+                    exprs.append((var, expr))
+                self.replaceexprs(loc, exprs)
 
         # Remove unused variables
         usedpre, usedpost = self.used()
@@ -767,3 +774,39 @@ class Function(object):
                 self.loctrans[loc][True], self.loctrans[loc][False]))
 
         return '\n'.join(s)
+
+    def getstruct(self):
+        
+        # s = []
+        # for fname in sorted(self.fncs):
+        sf = []
+        # fnc = self.name
+        dl = {}
+        todo = [self.initloc]
+        locs = list()
+        while len(todo) > 0:
+            loc, todo = todo[0], todo[1:]
+            if loc in dl:
+                continue
+            dl[loc] = len(dl) + 1
+            locs.append(loc)
+            if self.trans(loc, True) is not None:
+                todo.append(self.trans(loc, True))
+            if self.trans(loc, False) is not None:
+                todo.append(self.trans(loc, False))
+                
+        for loc in locs:
+            lt = self.trans(loc, True)
+            if lt is None:
+                lt = ''
+            else:
+                lt = str(dl[lt])
+            lf = self.trans(loc, False)
+            if lf is None:
+                lf = ''
+            else:
+                lf = str(dl[lf])
+            sf.append('%s:%s,%s' % (dl[loc], lt, lf))
+        # s.append('%s{%s}' % (fname, ' '.join(sf)))
+        # return ' '.join(s)
+        return sf

@@ -235,6 +235,7 @@ class PythonStatementGenerator(object):
                 for arg in args_both:
                     args.append(arg[0])
                     assignments = assignments + arg[1]
+                
                 if expr.name == 'ListInit':
                     ret = PyListInit(args)
                 elif expr.name == 'SetInit':
@@ -249,7 +250,11 @@ class PythonStatementGenerator(object):
                     except NotAnLValueException as ex:
                         ex.orig_val = expr.args[0]
                         raise ex
-                elif expr.name in BINARY_OPS:
+                elif expr.name in BINARY_OPS or expr.name in BINARY_OPS.values():
+                    # import pdb
+                    # pdb.set_trace()
+                    if expr.name in BINARY_OPS.values():
+                        expr.name = BINARY_OPS.keys()[BINARY_OPS.values().index(expr.name)]
                     ret = PyBinaryOperation(args[0], expr.name, args[1])
                 elif expr.name in UNARY_OPS:
                     ret = PyUnaryOperation(expr.name, args[0])
@@ -294,6 +299,8 @@ class PythonStatementGenerator(object):
                 elif expr.name == 'BoundVar':
                     ret = PyVariable(self.getBoundVarName(int(expr.args[0].value)))
                 elif expr.args != None:
+                    # import pdb
+                    # pdb.set_trace()
                     try:
                         if expr.name in PRIMITIVE_FUNC or callable(eval(expr.name)):
                             ret = PyFuncCall(expr.name, args)
