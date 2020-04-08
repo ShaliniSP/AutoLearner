@@ -433,7 +433,10 @@ class Parser(object):
             ))
             self.visit(next)
         else:
-            nextloc = None
+            # nextloc = None
+            nextloc = self.addloc("update of the '%s' loop at line %d" % (
+                name, self.getline(next)
+            ))
 
         # Add body with (new location)
         bodyloc = self.addloc("inside the body of the '%s' loop beginning at line %d" % (
@@ -526,7 +529,7 @@ class Parser(object):
         parser.postprocess()
         if parser.slice:
             parser.prog.slice()
-        return parser.prog
+        return parser.prog, parser.ast
 
     
 PARSERS = {}

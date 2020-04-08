@@ -12,6 +12,7 @@ import pprint
 import shutil
 import sys
 import traceback
+import pdb
 
 from ast import literal_eval
 
@@ -86,6 +87,8 @@ New options:
   --numi             number of incorrect specifications 
   --fnmapping [0|1]  whether to map functions with different names to one 
                      another or not. (default is 0)
+  --structrepair    [0|1] whether to add structural repairs to incorrect program (default is 0)
+
 '''
 
     def __init__(self):
@@ -152,6 +155,7 @@ New options:
         self.numc =  int(self.opts.pop('numc', -1))
         self.numi =  int(self.opts.pop('numi', -1))
         self.fnmapping = int(self.opts.pop('fnmapping', 0))
+        self.structrepair = int(self.opts.pop('structrepair', 0))
 
 
         self.poolsize = self.opts.pop('poolsize', None)
@@ -163,7 +167,7 @@ New options:
             self.feedtype = RepairFeedback
         elif self.feedtype == 'simple':
             self.feedtype = SimpleFeedback
-        elif self.feedtype == 'python':
+        elif self.feedtype == 'normal':
             self.feedtype = PythonFeedback
         else:
             self.error("Unknown feedback type: '%s'", self.feedtype)
@@ -244,11 +248,11 @@ New options:
             self.debug('Match requires two programs, ignoring the rest!')
         
         M = Matching(ignoreio=self.ignoreio, ignoreret=self.ignoreret,
-                     verbose=self.verbose, bijective=self.bijective, fnmapping = self.fnmapping)
+                     verbose=self.verbose, bijective=self.bijective)
 
-        if self.fnmapping:
+        if self.fnmapping or self.structrepair:
             M = Fn_Matching(ignoreio=self.ignoreio, ignoreret=self.ignoreret,
-                     verbose=self.verbose, bijective=self.bijective, fnmapping = self.fnmapping)
+                     verbose=self.verbose, bijective=self.bijective, fnmapping = self.fnmapping, structrepair = self.structrepair)
 
 
         m = M.match_programs(self.models[0], self.models[1], self.inter,
@@ -269,17 +273,17 @@ New options:
 
         M = Matching(ignoreio=self.ignoreio, ignoreret=self.ignoreret,
                      verbose=self.verbose, bijective=self.bijective)
-        if self.fnmapping:
+        if self.fnmapping or self.structrepair:
+            print "something"
             M = Fn_Matching(ignoreio=self.ignoreio, ignoreret=self.ignoreret,
-                     verbose=self.verbose, bijective=self.bijective, fnmapping = self.fnmapping)
+                     verbose=self.verbose, bijective=self.bijective, fnmapping = self.fnmapping, structrepair = self.structrepair)
         C = Clustering(M)
 
         existing = []
         for f in glob.glob(os.path.join(self.clusterdir, "*." + self.lang)):
-            model = self.process_source(f)
+            model, ast = self.process_source(f)
             existing.append(model)
         print "Found %d existing clusters" % (len(existing))
-                    
         new, mod = C.cluster(self.models, self.inter,
                              ins=self.ins, args=self.args,
                              entryfnc=self.entryfnc, existing=existing)
@@ -328,13 +332,14 @@ New options:
 
         R = Repair(timeout=self.timeout, verbose=self.verbose,
                    allowsuboptimal=self.suboptimal,
-                   cleanstrings=self.cleanstrings, fnmapping = self.fnmapping)
+                   cleanstrings=self.cleanstrings, fnmapping = self.fnmapping, structrepair = self.structrepair)
 
         r = R.repair(self.models[0], self.models[1], self.inter,
                      ins=self.ins, args=self.args, ignoreio=self.ignoreio,
-                     ignoreret=self.ignoreret, entryfnc=self.entryfnc)
+                     ignoreret=self.ignoreret, entryfnc=self.entryfnc, astP = self.asts[0], astQ = self.asts[1])
         if r:
-            txt = RepairFeedback(self.models[1], self.models[0], r)
+            # txt = RepairFeedback(self.models[1], self.models[0], r)
+            txt = PythonFeedback(self.models[1], self.models[0], r)
             txt.genfeedback()
             print 'Repairs:'
             print '\n'.join(map(lambda x: '  * %s' % (x,), txt.feedback))
@@ -364,7 +369,11 @@ New options:
                 self.error('max cost exceeded (%d > %d)',
                            feed.cost, self.maxfeedcost)
             for f in feed.feedback:
-                print '*', f
+                if(self.cmd == "grade"):
+                    yield f
+                else:
+                    print '*', f
+
                 
         elif feed.status == Feedback.STATUS_ERROR:
             self.error(feed.error)
@@ -463,21 +472,23 @@ New options:
             
         with open(src, 'r') as f:
             code = f.read().decode('utf-8')
-        model = self.parser.parse_code(code, self.dce)
+        model, ast = self.parser.parse_code(code, self.dce)
         model.name = src
         self.extract_exprs(model)
 
-        return model
+        return model, ast
             
     def process_sources(self):
         '''
         Reads and parses source files (sets models field).
         '''
         self.models = []
+        self.asts = []
 
         for src in self.sources:
-            model = self.process_source(src)
+            model, ast = self.process_source(src)
             self.models.append(model)
+            self.asts.append(ast)
     
     def grade(self):
         Grader(self.models, self.numc, self.numi, self).grade()

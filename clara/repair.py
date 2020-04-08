@@ -74,12 +74,13 @@ class RepairResult(object):
 class Repair(object):
 
     def __init__(self, timeout=60, verbose=False, solver=None,
-                 allowsuboptimal=True, cleanstrings=False, fnmapping = False):
+                 allowsuboptimal=True, cleanstrings=False, fnmapping = False,  structrepair = False):
         self.starttime = None
         self.timeout = timeout
         self.verbose = verbose
         self.cleanstrings = cleanstrings
         self.fnmapping = fnmapping
+        self.structrepair = structrepair
 
         if solver is None:
             from ilp import Solver
@@ -130,8 +131,18 @@ class Repair(object):
 
         return T
     
+    def check_struct_match(self, P, Q, astP, astQ):
+        if self.fnmapping or self.structrepair:
+            M = Fn_Matching(verbose=self.verbose, fnmapping = self.fnmapping, structrepair = self.structrepair)
+            sm = M.match_struct(P, Q, astP = astP, astQ = astQ)
+            return M, sm
+        M = Matching(verbose=self.verbose)
+        sm = M.match_struct(P, Q)
+        return M, sm
+
+
     def repair(self, P, Q, inter, ins=None, args=None, entryfnc=None,
-               ignoreio=False, ignoreret=False):
+               ignoreio=False, ignoreret=False, astP = None, astQ = None):
 
         self.starttime = time.time()
 
@@ -140,10 +151,8 @@ class Repair(object):
             self.vignore |= set([VAR_IN, VAR_OUT])
 
         # (1) Check struct match
-        M = Matching(verbose=self.verbose)
-        if self.fnmapping:
-            M = Fn_Matching(verbose=self.verbose, fnmapping = self.fnmapping)
-        self.sm = M.match_struct(P, Q)
+        M, self.sm = self.check_struct_match(P, Q, astP, astQ)
+
         if self.sm is None:
             raise StructMismatch('')
 

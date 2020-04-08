@@ -774,3 +774,39 @@ class Function(object):
                 self.loctrans[loc][True], self.loctrans[loc][False]))
 
         return '\n'.join(s)
+
+    def getstruct(self):
+        
+        # s = []
+        # for fname in sorted(self.fncs):
+        sf = []
+        # fnc = self.name
+        dl = {}
+        todo = [self.initloc]
+        locs = list()
+        while len(todo) > 0:
+            loc, todo = todo[0], todo[1:]
+            if loc in dl:
+                continue
+            dl[loc] = len(dl) + 1
+            locs.append(loc)
+            if self.trans(loc, True) is not None:
+                todo.append(self.trans(loc, True))
+            if self.trans(loc, False) is not None:
+                todo.append(self.trans(loc, False))
+                
+        for loc in locs:
+            lt = self.trans(loc, True)
+            if lt is None:
+                lt = ''
+            else:
+                lt = str(dl[lt])
+            lf = self.trans(loc, False)
+            if lf is None:
+                lf = ''
+            else:
+                lf = str(dl[lf])
+            sf.append('%s:%s,%s' % (dl[loc], lt, lf))
+        # s.append('%s{%s}' % (fname, ' '.join(sf)))
+        # return ' '.join(s)
+        return sf

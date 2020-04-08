@@ -5,17 +5,14 @@ Simulation relation
 # clara imports
 from common import debug, equals
 from interpreter import Interpreter, RuntimeErr, UndefValue, isundef
-from model import SPECIAL_VARS, VAR_RET, VAR_IN, VAR_OUT, isprimed, prime, Var
+from model import SPECIAL_VARS, VAR_RET, VAR_IN, VAR_OUT, isprimed, prime, Var, Op
 from matching import Matching
 from itertools import permutations
 from copy import deepcopy
+from forcematching import force_matching
 
-def conditional_decorator(dec, condition):
-    def decorator(func):
-        if not condition:
-            return func
-        return dec
-    return decorator
+import pdb
+
 
 def get_signature(fname):
     if fname.params ==[]:
@@ -30,15 +27,16 @@ class Fn_Matching(Matching):
 
 
     def __init__(self, ignoreio=False, ignoreret=False, verbose=False,
-                 debugvar=None, bijective=True, fnmapping = False):
+                 debugvar=None, bijective=True, fnmapping = False, structrepair = False):
         super(Fn_Matching, self).__init__(ignoreio, ignoreret, verbose, debugvar, bijective)
         
         self.fnmapping = fnmapping
+        self.structrepair = structrepair
 
     def replace_fnCalls(self, expr, fmap):
         if hasattr(expr, 'name'):
             if expr.name == 'FuncCall':
-                print "found fn call"
+                # print "found fn call"
                 expr.args[0] = Var(fmap[expr.args[0].name])
         if hasattr(expr, 'args'):
             for arg in expr.args:
@@ -62,15 +60,19 @@ class Fn_Matching(Matching):
                 for (var,expr) in fname.exprs(loc):
                     # try:
                         # print type(var), type(expr)
-                        print expr
+                        # print expr
 
                         self.replace_fnCalls(var, fmap)
                         self.replace_fnCalls(expr, fmap)
-                        # if expr.name == 'FuncCall':
-                        #     # print expr.name, expr.args
-                        #     # print type(expr.args[0])
-                        #     expr.args[0] = Var(fmap[expr.args[0].name])
-                            # new_exprs.append((var,expr.replace_vars(fmap)))
+                        
+                        # pdb.set_trace()
+                        # if type(expr) == Op and expr.name == 'FuncCall':
+                        # #     # print expr.name, expr.args
+                        # #     # print type(expr.args[0])
+                        #     # pdb.set_trace()
+                        #     if expr.args[0].name in fmap.keys():
+                        #         expr.args[0] = Var(fmap[expr.args[0].name])
+                        #     # new_exprs.append((var,expr.replace_vars(fmap)))
                     # except:
                     #     continue
                 # fname.replaceexprs(loc,new_exprs)
@@ -115,7 +117,8 @@ class Fn_Matching(Matching):
 
     # @conditional_decorator(function_mapping, True)
 
-    def MS(self, P,Q):
+    def MS(self, P,Q, astP = None, astQ = None):
+        # print "in MS"
         fncs1 = P.getfncnames()
         fncs2 = Q.getfncnames()
         # Go through all functions
@@ -174,20 +177,32 @@ class Fn_Matching(Matching):
 
             # Start from initial locations
             sm[fnc1] = {}
+
+
             if not build_sm(f1.initloc, f2.initloc):
-                return
+                if self.structrepair:
+                    # print "HERES"
+                    # pdb.set_trace()
+                    if self.fnmapping:
+                        fm = force_matching(f1,f2, astP, astQ, P, Q, fmap = self.fmap).force_sm()
+                    else:
+                        fm = force_matching(f1,f2, astP, astQ, P, Q).force_sm()
+                    if fm!=False:
+                        sm[fnc1] = fm
+                    else:
+                        return
+                else:
+                    return
 
         return sm
 
-    def match_struct(self, P, Q, entryfnc = None):
-
-
+    def match_struct(self, P, Q, entryfnc = None, astP = None, astQ = None):
 
         fmapping = self.function_mapping(P,Q)
         # print fmapping
         # print len(fmapping.values())
 
-        sm = self.MS(P,Q)
+        sm = self.MS(P,Q, astP, astQ)
 
         if self.fnmapping and fmapping:
             print "mapping functions"
@@ -197,7 +212,7 @@ class Fn_Matching(Matching):
             total = len(fmapping.keys())
             rmap = {}
             fmap = {entryfnc:entryfnc}
-
+            self.fmap = fmap
             while sm==None and permLeft:
                 print "mismatch"
                 if len(rmap) > 0:
@@ -225,13 +240,14 @@ class Fn_Matching(Matching):
                     self.rename_fncs(P,fmap)
                     self.rename_fnCalls(P,fmap)
                     # print P.getfncnames(), Q.getfncnames()
-                    sm = self.MS(P,Q)
+                    self.fmap = fmap
+                    sm = self.MS(P,Q, astP, astQ)
 
 
 
 
         # else:
-        #     print "good"
+        # print "good", sm
         return sm
         
         

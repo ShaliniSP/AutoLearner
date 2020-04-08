@@ -731,7 +731,11 @@ of 'scanf' at line %s.",
         return str(name)
 
     def getline(self, node):
-        return node.coord.line
+        try:
+            x = node.coord.line
+        except:
+            x= 0
+        return x
             
 
 addlangparser('c', CParser)

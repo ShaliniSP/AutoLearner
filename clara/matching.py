@@ -226,6 +226,7 @@ class Matching(object):
             if not build_sm(f1.initloc, f2.initloc):
                 return
 
+
         return sm
         
     def match_programs(self, P, Q, inter, ins=None, args=None,
