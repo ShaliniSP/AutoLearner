@@ -353,27 +353,27 @@ New options:
 
         F = FeedGen(verbose=self.verbose, timeout=self.timeout,
                     poolsize=self.poolsize, allowsuboptimal=self.suboptimal,
-                    feedmod=self.feedtype)
+                    feedmod=self.feedtype, fnmapping = self.fnmapping, structrepair = self.structrepair)
 
         impl = self.models[-1]
         specs = self.models[:-1]
+
+        impl_asts = self.asts[-1]
+        specs_asts = self.asts[:-1]
+
 
         feed = F.generate(
             impl, specs, self.inter, ins=self.ins, args=self.args,
             ignoreio=self.ignoreio, ignoreret=self.ignoreret,
             cleanstrings=self.cleanstrings,
-            entryfnc=self.entryfnc)
+            entryfnc=self.entryfnc, impl_asts = impl_asts, specs_asts = specs_asts)
 
         if feed.status == Feedback.STATUS_REPAIRED:
             if self.maxfeedcost > 0 and feed.cost > self.maxfeedcost:
                 self.error('max cost exceeded (%d > %d)',
                            feed.cost, self.maxfeedcost)
             for f in feed.feedback:
-                if(self.cmd == "grade"):
-                    yield f
-                else:
-                    print '*', f
-
+                print '*', f
                 
         elif feed.status == Feedback.STATUS_ERROR:
             self.error(feed.error)
