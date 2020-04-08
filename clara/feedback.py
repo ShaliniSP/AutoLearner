@@ -31,7 +31,7 @@ class Feedback(object):
     def __init__(self, impl, spec, inter, timeout=None, verbose=False,
                  ins=None, args=None, ignoreio=False, ignoreret=False,
                  cleanstrings=False,
-                 entryfnc=None, allowsuboptimal=True, feedmod=RepairFeedback):
+                 entryfnc=None, allowsuboptimal=True, feedmod=RepairFeedback, fnmapping = False, structrepair = False, impl_ast= None, spec_ast = None):
         
         self.impl = impl
         self.spec = spec
@@ -58,6 +58,11 @@ class Feedback(object):
 
         self.start = time.time()
 
+        self.fnmapping = fnmapping
+        self.structrepair = structrepair
+        self.impl_ast= impl_ast
+        self.spec_ast = spec_ast
+
     def generate(self):
 
         # Time spent waiting in pool queue
@@ -67,14 +72,14 @@ class Feedback(object):
         # Create a repair object
         R = Repair(timeout=self.timeout, verbose=self.verbose,
                    allowsuboptimal=self.allowsuboptimal,
-                   cleanstrings=self.cleanstrings)
+                   cleanstrings=self.cleanstrings, fnmapping = self.fnmapping, structrepair = self.structrepair)
 
         try:
             # Try generating a repair
             self.results = R.repair(
                 self.spec, self.impl, self.inter, ins=self.ins, args=self.args,
                 ignoreio=self.ignoreio, ignoreret=self.ignoreret,
-                entryfnc=self.entryfnc)
+                entryfnc=self.entryfnc, astP = self.spec_ast, astQ = self.impl_ast)
 
             # Collect result
             self.cost = 0
@@ -214,17 +219,19 @@ class FeedGen(object):
     '''
 
     def __init__(self, verbose=False, timeout=False, poolsize=None,
-                 allowsuboptimal=True, pool=None, feedmod=RepairFeedback):
+                 allowsuboptimal=True, pool=None, feedmod=RepairFeedback, fnmapping = False, structrepair = False):
         self.verbose = verbose
         self.timeout = timeout
         self.poolsize = poolsize
         self.pool = pool
         self.allowsuboptimal = allowsuboptimal
         self.feedmod = feedmod
+        self.fnmapping = fnmapping
+        self.structrepair = structrepair
 
     def generate(self, impl, specs, inter, ins=None, args=None,
                  entryfnc='main', ignoreio=False, ignoreret=False,
-                 cleanstrings=False):
+                 cleanstrings=False, impl_asts = None, specs_asts = None):
 
         self.impl = impl
         self.specs = specs
@@ -250,8 +257,8 @@ class FeedGen(object):
                 ins=self.ins, args=self.args, ignoreio=self.ignoreio,
                 ignoreret=self.ignoreret, entryfnc=self.entryfnc,
                 cleanstrings=self.cleanstrings,
-                allowsuboptimal=self.allowsuboptimal, feedmod=self.feedmod)
-            for spec in specs]
+                allowsuboptimal=self.allowsuboptimal, feedmod=self.feedmod, fnmapping = self.fnmapping, structrepair = self.structrepair, spec_ast = spec_ast, impl_ast = impl_asts)
+            for (spec, spec_ast) in zip(specs, specs_asts)]
         
         # Process all tasks
         results = self.pool.map(run_feedback, tasks)
