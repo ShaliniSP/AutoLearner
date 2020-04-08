@@ -74,7 +74,9 @@ Grading
 To repair multiple incorrect programs use the 'grade' command. All correct and incorrect programs must be passed to CLARA, via the command line alog with the number of correct and number of incorrect solutions. 
 
 Example:
-`clara grade clara grade demo/c4.c demo/c5.c demo/i4.c demo/i5.c --verbose 0 --numc 2 --numi 2 --ins "[[1,2,3], [2,3,1], [3,1,2]]"` 
+```
+clara grade clara grade demo/c4.c demo/c5.c demo/i4.c demo/i5.c --verbose 0 --numc 2 --numi 2 --ins "[[1,2,3], [2,3,1], [3,1,2]]"
+``` 
 This repairs multiple incorrect programs from multiple correct programs and ranks the incorrect programs with marks out of 10.
 
 
@@ -83,7 +85,9 @@ Dead Code Elimination
 If there is dead code present in a correct specification, the tool is now capable of eliminating it. This leads to the avoidance of unnecessary fixes to the incorrect program, which does not make any sense to the end user
 
 Example:
-`clara repair demo/c2.c demo/i2.c --ins "[[1], [-1], [0]]" --dce 1`
+```
+clara repair demo/c2.c demo/i2.c --ins "[[1], [-1], [0]]" --dce 1
+```
 
 demo/c2.c containes dead variables x,y,z
 
@@ -93,7 +97,9 @@ Input Generation
 Lack of suffienct input leads to incorrect fixes. Using the --ipgen flag may help solve this issue
 
 Example:
-`clara repair demo/c1.c demo/i1.c --ins "[[3,1,2]]" --ipgen 1`
+```
+clara repair demo/c1.c demo/i1.c --ins "[[3,1,2]]" --ipgen 1
+```
 
 
 Function Matching
@@ -101,7 +107,9 @@ Function Matching
 To repair an incorrect program with different functions names as the correct program. demo/c3.c contains the function average and demo/i3.c contains the function my_average.
 
 Example:
-`clara repair demo/c3.c demo/i3.c --ins "[[1,2]]" --fnmapping 1`
+```
+clara repair demo/c3.c demo/i3.c --ins "[[1,2]]" --fnmapping 1
+```
 
 
 Structure Matching
@@ -109,7 +117,9 @@ Structure Matching
 To repair an incorrect program with different looping structure as the correct program.
 
 Example:
-`clara repair demo/c7.c demo/i7.c  --args "[[[4,2,1,3],4]]" --ignoreio 1 --verbose 0 --structrepair 1 --entryfnc sort_numbers_ascending`
+```
+clara repair demo/c7.c demo/i7.c  --args "[[[4,2,1,3],4]]" --ignoreio 1 --verbose 0 --structrepair 1 --entryfnc sort_numbers_ascending
+```
 
 
 
