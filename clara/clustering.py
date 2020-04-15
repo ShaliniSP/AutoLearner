@@ -62,17 +62,21 @@ class Clustering(object):
             # Check whether prog matches any of the existing clusters
             found = False
             for i, cprog in enumerate(clusters):
-                m = self.matching.match_programs(
-                    cprog, prog, inter, ins=ins, args=args, entryfnc=entryfnc)
-                if not m: continue
-                
+                try:
 
-                modified = self.extract_exprs(cprog, prog, m[0], m[1])
-                if modified:
-                    modset.add(i)
-                
-                found = True
-                break
+                    m = self.matching.match_programs(
+                        cprog, prog, inter, ins=ins, args=args, entryfnc=entryfnc)
+                    if not m: continue
+                    
+
+                    modified = self.extract_exprs(cprog, prog, m[0], m[1])
+                    if modified:
+                        modset.add(i)
+                    
+                    found = True
+                    break
+                except:
+                    continue
 
             # No matching, creating a new cluster
             if not found:
