@@ -248,11 +248,16 @@ class getLoopStructure(c_ast.NodeVisitor):
 			elif get_type(node2) in ['While', 'DoWhile']:
 				node_type2 = c_ast.While if get_type(node2)=='While' else c_ast.DoWhile
 				node1.ast_node = node_type2(None, orig_node)
+
+			# orig_node = node1.parent()
 			elif get_type(node2) == 'IF':
 				if get_type(node1) =='i':
 					node1.ast_node = c_ast.If(None, orig_node, None)
 				else:
 					node1.ast_node = c_ast.If(None, None, orig_node)
+		
+	
+
 		self.update_tree(self.loopStruct, node1, node1.ast_node, orig_node)
 		node1.label = node2.label
 		self.all_ast_nodes[node1.label] = node1.ast_node
@@ -277,7 +282,10 @@ class getLoopStructure(c_ast.NodeVisitor):
 
 
 	def update_tree(self,root, orig_node, new_node, orig_ast):
-		pdb.set_trace()
+		# pdb.set_trace()
+		# if orig_node.label[0] in ['i', 'e']:
+		# 	orig_node = Node('IF'+orig_node.label[1:])
+		# 	return self.update_tree(root, orig_node, new_node, orig_ast)
 		if orig_node in root.children:
 			# root.children.remove(t_node)
 			node = root.ast_node
@@ -300,7 +308,7 @@ class getLoopStructure(c_ast.NodeVisitor):
 			return True
 		else:
 			for c in root.children:
-				r = self.remove_tree(c, t_node)
+				r = self.update_tree(c, orig_node, new_node, orig_ast)
 				if r==True:
 					return True
 	def remove_tree(self,root, t_node):
@@ -353,8 +361,13 @@ class getLoopStructure(c_ast.NodeVisitor):
 			for c in remaining:
 				root1.addkid(c)
 				self.repair_to_add(c, root1, prev)
+				# pdb.set_trace()
 				if c.label in self.insert_nodes.keys():
-					self.add_loop_structure(self.insert_nodes[c.label], root1, prev)
+					try:
+						self.add_loop_structure(self.insert_nodes[c.label].ast_node, root1, prev)
+					except:
+						self.add_loop_structure(self.insert_nodes[c.label], root1, prev)
+
 				else:
 					self.add_loop_structure(self.get_struct_nodes(c), root1, prev)
 				prev = c
@@ -689,9 +702,10 @@ if __name__== "__main__":
 	# visit_ls(ls.loopStruct)
 
 	ls2.getStructDiff(ls1.loopStruct, ls2.loopStruct)
+	# pdb.set_trace()
+
 	print "Struct 2"
 	print [i.label for i in ls2.loopStruct.iter()]
-
 
 
 	print "NEW Program"
