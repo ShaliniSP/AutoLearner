@@ -274,7 +274,7 @@ New options:
         M = Matching(ignoreio=self.ignoreio, ignoreret=self.ignoreret,
                      verbose=self.verbose, bijective=self.bijective)
         if self.fnmapping or self.structrepair:
-            print "something"
+            # print "something"
             M = Fn_Matching(ignoreio=self.ignoreio, ignoreret=self.ignoreret,
                      verbose=self.verbose, bijective=self.bijective, fnmapping = self.fnmapping, structrepair = self.structrepair)
         C = Clustering(M)
@@ -347,7 +347,7 @@ New options:
             print 'No repair!'
 
     def feedback(self):
-
+        # pdb.set_trace()
         if len(self.models) < 2:
             self.error('Feedback requires at least two programs!')
 
@@ -358,22 +358,22 @@ New options:
         impl = self.models[-1]
         specs = self.models[:-1]
 
-        impl_asts = self.asts[-1]
-        specs_asts = self.asts[:-1]
-
-
         feed = F.generate(
             impl, specs, self.inter, ins=self.ins, args=self.args,
             ignoreio=self.ignoreio, ignoreret=self.ignoreret,
             cleanstrings=self.cleanstrings,
-            entryfnc=self.entryfnc, impl_asts = impl_asts, specs_asts = specs_asts)
+            entryfnc=self.entryfnc, impl_asts = self.asts[-1], specs_asts = self.asts[:-1])
 
         if feed.status == Feedback.STATUS_REPAIRED:
             if self.maxfeedcost > 0 and feed.cost > self.maxfeedcost:
                 self.error('max cost exceeded (%d > %d)',
                            feed.cost, self.maxfeedcost)
             for f in feed.feedback:
-                print '*', f
+                if(self.cmd == "grade"):
+                    yield f
+                else:
+                    print '*', f
+
                 
         elif feed.status == Feedback.STATUS_ERROR:
             self.error(feed.error)
@@ -491,7 +491,7 @@ New options:
             self.asts.append(ast)
     
     def grade(self):
-        Grader(self.models, self.numc, self.numi, self).grade()
+        Grader(self.models, self.numc, self.numi, self.inter, self.ins, self.args, self.ignoreio, self.ignoreret, self.entryfnc, self).grade()
 
 if __name__ == '__main__':
     try:
