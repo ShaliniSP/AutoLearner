@@ -5,6 +5,7 @@ Feedback generation from repair on multiple specifications
 # Python imports
 import time
 import traceback
+import pdb
 
 from multiprocessing import Pool
 
@@ -251,6 +252,7 @@ class FeedGen(object):
             self.pool = Pool(processes=self.poolsize)
 
         # Creates list of tasks, for each spec one
+        # pdb.set_trace()
         tasks = [
             Feedback(
                 impl, spec, inter, timeout=self.timeout, verbose=self.verbose,
@@ -269,7 +271,8 @@ class FeedGen(object):
         for res in results:
             # Immediately return error
             if res.status == Feedback.STATUS_ERROR:
-                return res
+                # return res
+                continue
 
             # Return or remember timeout results
             # (depending if suboptimal feedback is allowed or not)
@@ -277,11 +280,13 @@ class FeedGen(object):
                 if self.allowsuboptimal:
                     feedbacks.append(((res.cost, res.spec.name), res))
                 else:
-                    return res
+                    # return res
+                    continue
             
             # Remember struct problem
             elif res.status == Feedback.STATUS_STRUCT:
-                feedback = res
+                # feedback = res
+                continue
 
             # Remember repaired with cost
             elif res.status == Feedback.STATUS_REPAIRED:
