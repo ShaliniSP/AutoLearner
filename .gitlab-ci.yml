@@ -45,5 +45,4 @@ flask-build:
 docker-build:
   stage: package
   script:
-    - cd build
     - docker build --rm=true -t clara .
