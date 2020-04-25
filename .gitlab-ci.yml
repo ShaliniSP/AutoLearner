@@ -13,6 +13,7 @@
 #    - master
 
 before_script:
+  - apt-get install docker
   - docker info
 
 build_image:
