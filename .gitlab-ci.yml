@@ -12,11 +12,30 @@
 #  only:
 #    - master
 
-before_script:
-  - apt-get install docker
-  - docker info
+#before_script:
+#  - apt-get install docker
+#  - docker info
 
-build_image:
+#build_image:
+# script:
+#    - docker build --rm=true -t clara .
+#    - docker run -ti -h clara --name clara demo/demo_newclara
+    
+image: docker:latest
+
+services:
+  - docker:dind
+
+variables:
+  DOCKER_DRIVER: overlay
+
+stages:
+  - build
+  - package
+
+
+docker-build:
+  stage: package
   script:
+    - cd build
     - docker build --rm=true -t clara .
-    - docker run -ti -h clara --name clara demo/demo_newclara
