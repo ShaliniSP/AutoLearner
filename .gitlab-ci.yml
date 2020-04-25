@@ -33,7 +33,15 @@ stages:
   - build
   - package
 
-
+flask-build:
+  image: python:3.6
+  stage: build
+  script:
+    - pip install flask
+  artifacts:
+    paths:
+      - build/*
+      
 docker-build:
   stage: package
   script:
